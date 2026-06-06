@@ -105,12 +105,44 @@ button.primary:active { background: var(--primary-soft); transform: scale(.99); 
 .expense-list .amt { margin-left: auto; font-weight: 700; font-size: 15px; white-space: nowrap; }
 .expense-list .amt.expense { color: var(--expense); }
 .expense-list .amt.income { color: var(--income); }
-.expense-list .del {
-  background: none; border: none; color: var(--line); cursor: pointer;
-  font-size: 18px; padding: 6px; width: 32px; height: 32px; border-radius: 8px; transition: .2s;
+.expense-list .li-main { min-width: 0; } /* 讓備註過長時能省略不擠壞排版 */
+.expense-list .edit, .expense-list .del {
+  background: none; border: none; cursor: pointer; flex-shrink: 0;
+  font-size: 16px; padding: 6px; width: 34px; height: 34px; border-radius: 8px; transition: .2s;
 }
+.expense-list .edit { color: var(--muted); }
+.expense-list .edit:active { background: var(--bg); color: var(--primary); }
+.expense-list .del { color: var(--line); }
 .expense-list .del:active { background: var(--bg); color: var(--expense); }
 .empty { text-align: center; color: var(--muted); margin-top: 48px; font-size: 14px; }
+
+/* ===== 編輯彈窗 ===== */
+.modal {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(67,56,61,.45); padding: 0;
+}
+.modal[hidden] { display: none; }
+.modal-card {
+  background: var(--card); width: 100%; max-width: 560px;
+  border-radius: 20px 20px 0 0; max-height: 92vh; overflow-y: auto;
+  padding: var(--s5) var(--s4) calc(var(--s5) + env(safe-area-inset-bottom));
+  animation: sheet-up .25s ease;
+}
+@keyframes sheet-up { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .modal-card { animation: none; } }
+.modal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--s4); }
+.modal-head h2 { font-size: 17px; font-weight: 700; margin: 0; }
+.modal-x {
+  background: var(--bg); border: none; cursor: pointer; color: var(--muted);
+  width: 34px; height: 34px; border-radius: 10px; font-size: 16px;
+}
+.modal-card .card { box-shadow: none; padding: 0; }
+.ekind-btn {
+  flex: 1; padding: 11px; border: none; background: transparent; cursor: pointer;
+  border-radius: 9px; font-size: 15px; font-weight: 600; color: var(--muted); transition: .2s;
+}
+.ekind-btn[data-kind="expense"].active { background: var(--expense); color: #fff; }
+.ekind-btn[data-kind="income"].active { background: var(--income); color: #fff; }
 
 /* ===== 統計 ===== */
 .stats-head { display: flex; justify-content: flex-end; margin-bottom: var(--s3); }

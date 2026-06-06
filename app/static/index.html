@@ -103,6 +103,41 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1L14.5 3h-5l-.3 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h5l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .1-1z" stroke-linejoin="round"/></svg>設定</button>
   </nav>
 
+  <!-- 編輯彈窗 -->
+  <div id="edit-modal" class="modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>編輯這一筆</h2>
+        <button type="button" id="edit-close" class="modal-x" aria-label="關閉">✕</button>
+      </div>
+      <form id="edit-form" class="card">
+        <div class="kind-toggle">
+          <button type="button" data-kind="expense" class="ekind-btn active">支出</button>
+          <button type="button" data-kind="income" class="ekind-btn">收入</button>
+        </div>
+        <label>金額
+          <input type="number" id="e-amount" inputmode="decimal" step="1" min="0" required>
+        </label>
+        <label>日期
+          <input type="date" id="e-date" required>
+        </label>
+        <label>分類
+          <select id="e-category"></select>
+        </label>
+        <label>付款人
+          <select id="e-member"></select>
+        </label>
+        <label>付款方式
+          <select id="e-method"></select>
+        </label>
+        <label>備註
+          <input type="text" id="e-note" placeholder="選填">
+        </label>
+        <button type="submit" class="primary">儲存修改</button>
+      </form>
+    </div>
+  </div>
+
   <script src="/static/app.js"></script>
 </body>
 </html>

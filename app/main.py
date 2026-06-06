@@ -105,6 +105,22 @@ def add_expense(item: ExpenseIn) -> dict:
     return {"id": new_id}
 
 
+@app.put("/api/expenses/{expense_id}")
+def update_expense(expense_id: int, item: ExpenseIn) -> dict:
+    if item.kind not in ("expense", "income"):
+        raise HTTPException(400, "kind 必須是 expense 或 income")
+    with db.get_conn() as conn:
+        cur = conn.execute(
+            "UPDATE expenses SET date=?, amount=?, kind=?, category=?, "
+            "member=?, method=?, note=? WHERE id=?",
+            (item.date, item.amount, item.kind, item.category,
+             item.member, item.method, item.note, expense_id),
+        )
+        if cur.rowcount == 0:
+            raise HTTPException(404, "找不到這筆紀錄")
+    return {"ok": True}
+
+
 @app.delete("/api/expenses/{expense_id}")
 def delete_expense(expense_id: int) -> dict:
     with db.get_conn() as conn:

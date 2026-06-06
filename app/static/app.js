@@ -18,6 +18,7 @@ async function init() {
   $("#f-date").value = new Date().toISOString().slice(0, 10);
   bindNav();
   bindForm();
+  bindEdit();
   bindSettings();
   meta = await api("/api/meta");
   fillSelects();
@@ -88,9 +89,16 @@ const ADD_OPT = '<option value="__add__">＋ 新增…</option>'; // 下拉最�
 
 function fillSelects() {
   const opts = (arr) => arr.map((x) => `<option>${x}</option>`).join("");
-  $("#f-category").innerHTML = opts(meta.categories) + ADD_OPT;
-  $("#f-member").innerHTML = opts(meta.members.map((m) => m.name)) + ADD_OPT; // 成員是物件
-  $("#f-method").innerHTML = opts(meta.methods) + ADD_OPT;
+  const cats = opts(meta.categories);
+  const mems = opts(meta.members.map((m) => m.name)); // 成員是物件
+  const meths = opts(meta.methods);
+  // 記帳表單 + 編輯彈窗共用同一份選項
+  $("#f-category").innerHTML = cats + ADD_OPT;
+  $("#f-member").innerHTML = mems + ADD_OPT;
+  $("#f-method").innerHTML = meths + ADD_OPT;
+  $("#e-category").innerHTML = cats + ADD_OPT;
+  $("#e-member").innerHTML = mems + ADD_OPT;
+  $("#e-method").innerHTML = meths + ADD_OPT;
 }
 
 // 下拉選「＋新增」→ 跳出輸入框，直接加進設定並選用
@@ -148,25 +156,95 @@ function bindForm() {
 }
 
 // ---------- 清單 ----------
+let currentList = []; // 目前清單，供編輯時查原資料
+
 function renderList(list) {
+  currentList = list;
   const ul = $("#expense-list");
   $("#list-empty").style.display = list.length ? "none" : "block";
   ul.innerHTML = list.map((it) => `
     <li>
       ${memberAvatar(it.member)}
-      <div>
+      <div class="li-main">
         <div class="cat">${it.category}</div>
         <div class="meta">${it.date.slice(5)} · ${it.member || ""} ${it.method ? "· " + it.method : ""} ${it.note ? "· " + it.note : ""}</div>
       </div>
       <div class="amt ${it.kind}">${it.kind === "income" ? "+" : "-"}${ntd(it.amount)}</div>
-      <button class="del" data-id="${it.id}">✕</button>
+      <button class="edit" data-id="${it.id}" aria-label="編輯">✎</button>
+      <button class="del" data-id="${it.id}" aria-label="刪除">✕</button>
     </li>`).join("");
+  ul.querySelectorAll(".edit").forEach((b) => {
+    b.onclick = () => openEdit(b.dataset.id);
+  });
   ul.querySelectorAll(".del").forEach((b) => {
     b.onclick = async () => {
+      if (!confirm("確定刪除這一筆?")) return;
       await api(`/api/expenses/${b.dataset.id}`, { method: "DELETE" });
       await refresh();
     };
   });
+}
+
+// ---------- 編輯彈窗 ----------
+let editId = null;
+let editKind = "expense";
+
+// 設下拉值；若原值已不在選項裡（分類被刪過），補一個臨時選項避免變空白
+function setSelect(id, val) {
+  const sel = $(id);
+  if (val && !Array.from(sel.options).some((o) => o.value === val || o.text === val)) {
+    sel.insertAdjacentHTML("afterbegin", `<option>${val}</option>`);
+  }
+  sel.value = val || "";
+}
+
+function setEditKind(k) {
+  editKind = k;
+  document.querySelectorAll(".ekind-btn").forEach((x) => x.classList.toggle("active", x.dataset.kind === k));
+}
+
+function openEdit(id) {
+  const it = currentList.find((x) => String(x.id) === String(id));
+  if (!it) return;
+  editId = it.id;
+  setEditKind(it.kind);
+  $("#e-amount").value = it.amount;
+  $("#e-date").value = it.date;
+  setSelect("#e-category", it.category);
+  setSelect("#e-member", it.member || "");
+  setSelect("#e-method", it.method || "");
+  $("#e-note").value = it.note || "";
+  $("#edit-modal").hidden = false;
+}
+
+function closeEdit() { $("#edit-modal").hidden = true; editId = null; }
+
+function bindEdit() {
+  $("#edit-close").onclick = closeEdit;
+  $("#edit-modal").onclick = (e) => { if (e.target.id === "edit-modal") closeEdit(); }; // 點背景關閉
+  document.querySelectorAll(".ekind-btn").forEach((b) => { b.onclick = () => setEditKind(b.dataset.kind); });
+  $("#e-category").onchange = (e) => { if (e.target.value === "__add__") quickAdd("categories", "#e-category", "分類"); };
+  $("#e-member").onchange = (e) => { if (e.target.value === "__add__") quickAdd("members", "#e-member", "成員"); };
+  $("#e-method").onchange = (e) => { if (e.target.value === "__add__") quickAdd("methods", "#e-method", "付款方式"); };
+  $("#edit-form").onsubmit = async (e) => {
+    e.preventDefault();
+    const body = {
+      date: $("#e-date").value,
+      amount: parseFloat($("#e-amount").value),
+      kind: editKind,
+      category: $("#e-category").value,
+      member: $("#e-member").value,
+      method: $("#e-method").value,
+      note: $("#e-note").value,
+    };
+    await api(`/api/expenses/${editId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    closeEdit();
+    await refresh();
+  };
 }
 
 // ---------- 圖表 ----------
