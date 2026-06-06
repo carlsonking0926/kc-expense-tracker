@@ -1,0 +1,168 @@
+/* ===== 設計系統（米白淡雅 · 粉調點綴）===== */
+:root {
+  --primary: #B26088;        /* 玫瑰粉（點綴主色） */
+  --primary-soft: #9E5076;
+  --gold: #C2924F;           /* 柔金 */
+  --bg: #FAF6F4;             /* 米白暖底 */
+  --card: #FFFFFF;
+  --text: #43383D;           /* 暖炭（柔和深字） */
+  --muted: #9A8B91;
+  --line: #EFE5E8;
+  --income: #3F9B7A;         /* 柔綠 */
+  --expense: #D75C7C;        /* 玫瑰紅 */
+  --radius: 16px;
+  --shadow: 0 1px 3px rgba(150,110,125,.08), 0 1px 2px rgba(150,110,125,.05);
+  /* 間距 8pt 制 */
+  --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: "Noto Sans TC", -apple-system, "PingFang TC", sans-serif;
+  padding-bottom: calc(72px + env(safe-area-inset-bottom));
+  font-size: 16px; line-height: 1.5;
+}
+/* 數字用 Poppins + 等寬數字，避免跳動 */
+.num, .amt, .sum-item b, .month-name { font-family: "Poppins", "Noto Sans TC", sans-serif; font-variant-numeric: tabular-nums; }
+
+/* ===== 頂部 ===== */
+header {
+  background: linear-gradient(160deg, #FBEFF3 0%, #F6E2EA 100%); color: var(--text);
+  padding: calc(env(safe-area-inset-top) + 14px) var(--s4) 14px;
+  position: sticky; top: 0; z-index: 20;
+  border-bottom: 1px solid #F0D9E2;
+}
+.month-row { display: flex; align-items: center; justify-content: center; gap: var(--s5); }
+.month-name { font-size: 17px; font-weight: 700; min-width: 130px; text-align: center; }
+.month-nav {
+  background: rgba(255,255,255,.7); border: none; color: var(--text); cursor: pointer;
+  font-size: 20px; width: 40px; height: 40px; border-radius: 12px; transition: background .2s;
+}
+.month-nav:active { background: #fff; }
+
+/* 結餘總覽（嵌在 header 下方的白卡片） */
+.summary-bar {
+  display: flex; gap: var(--s2); margin-top: var(--s4);
+}
+.sum-item {
+  flex: 1; text-align: center; padding: 11px 4px; border-radius: 12px;
+  background: var(--card); box-shadow: var(--shadow);
+}
+.sum-item span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.sum-item b { font-size: 16px; font-weight: 700; }
+.sum-item.income b { color: #2F8F6B; }
+.sum-item.expense b { color: #CF4A6E; }
+.sum-item.balance b { color: #B9822F; }
+
+/* 收入 vs 支出 進度條 */
+.progress { margin-top: var(--s3); }
+.progress-track { height: 9px; background: rgba(178,96,136,.14); border-radius: 999px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0; background: var(--expense); border-radius: 999px; transition: width .45s ease; }
+.progress-text { font-size: 12px; font-weight: 600; color: var(--text); text-align: center; margin-top: 6px; }
+
+main { padding: var(--s4); max-width: 560px; margin: 0 auto; }
+.view { display: none; animation: fade .2s ease; }
+.view.active { display: block; }
+@keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .view { animation: none; } }
+
+/* ===== 記帳表單 ===== */
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--s5); }
+form label { display: block; font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: var(--s4); }
+form input, form select {
+  width: 100%; margin-top: 6px; padding: 13px 14px; font-size: 16px;
+  border: 1px solid var(--line); border-radius: 12px; background: var(--card); color: var(--text);
+  appearance: none; transition: border-color .2s, box-shadow .2s;
+}
+form input:focus, form select:focus {
+  outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15,23,42,.08);
+}
+#f-amount { font-family: "Poppins", sans-serif; font-size: 22px; font-weight: 600; }
+
+.kind-toggle { display: flex; gap: var(--s2); margin-bottom: var(--s5); background: var(--bg); padding: 4px; border-radius: 12px; }
+.kind-btn {
+  flex: 1; padding: 11px; border: none; background: transparent; cursor: pointer;
+  border-radius: 9px; font-size: 15px; font-weight: 600; color: var(--muted); transition: .2s;
+}
+.kind-btn[data-kind="expense"].active { background: var(--expense); color: #fff; }
+.kind-btn[data-kind="income"].active { background: var(--income); color: #fff; }
+
+button.primary {
+  width: 100%; padding: 15px; background: var(--primary); color: #fff; border: none; cursor: pointer;
+  border-radius: 12px; font-size: 16px; font-weight: 600; margin-top: var(--s2); transition: .2s;
+}
+button.primary:active { background: var(--primary-soft); transform: scale(.99); }
+
+/* ===== 清單 ===== */
+.expense-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--s2); }
+.expense-list li {
+  background: var(--card); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow);
+  display: flex; align-items: center; gap: var(--s3);
+}
+.expense-list .cat { font-weight: 600; font-size: 15px; }
+.expense-list .meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.expense-list .amt { margin-left: auto; font-weight: 700; font-size: 15px; white-space: nowrap; }
+.expense-list .amt.expense { color: var(--expense); }
+.expense-list .amt.income { color: var(--income); }
+.expense-list .del {
+  background: none; border: none; color: var(--line); cursor: pointer;
+  font-size: 18px; padding: 6px; width: 32px; height: 32px; border-radius: 8px; transition: .2s;
+}
+.expense-list .del:active { background: var(--bg); color: var(--expense); }
+.empty { text-align: center; color: var(--muted); margin-top: 48px; font-size: 14px; }
+
+/* ===== 統計 ===== */
+.stats-head { display: flex; justify-content: flex-end; margin-bottom: var(--s3); }
+#stats-member {
+  appearance: none; background: var(--card); color: var(--text); cursor: pointer;
+  border: 1px solid var(--line); border-radius: 20px; padding: 8px 34px 8px 16px;
+  font-size: 14px; font-weight: 600; box-shadow: var(--shadow);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}
+.chart-card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--s5); margin-bottom: var(--s4); }
+.chart-card h2 { font-size: 15px; font-weight: 600; margin: 0 0 var(--s4); }
+
+/* ===== 頭像 ===== */
+.avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+.avatar-ph {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--primary); color: #fff; font-size: 15px; font-weight: 600;
+}
+.avatar.lg { width: 60px; height: 60px; font-size: 24px; }
+
+/* ===== 設定 ===== */
+.setting-group { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--s5); margin-bottom: var(--s4); }
+.setting-group h2 { font-size: 15px; font-weight: 600; margin: 0 0 var(--s4); }
+.chips { display: flex; flex-wrap: wrap; gap: var(--s2); margin-bottom: var(--s4); }
+.chip {
+  background: var(--bg); border: 1px solid var(--line); border-radius: 20px;
+  padding: 7px 12px; font-size: 14px; display: flex; align-items: center; gap: 6px;
+}
+.chip button { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 15px; line-height: 1; padding: 2px; }
+
+.member-card { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 84px; position: relative; }
+.avatar-wrap { cursor: pointer; display: block; }
+.member-card .m-name { font-size: 13px; font-weight: 500; text-align: center; word-break: break-word; }
+.member-card .m-del {
+  position: absolute; top: -2px; right: 8px; background: var(--expense); color: #fff; cursor: pointer;
+  border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; line-height: 1;
+}
+.add-row { display: flex; gap: var(--s2); }
+.add-row input { flex: 1; padding: 11px; border: 1px solid var(--line); border-radius: 10px; font-size: 16px; }
+.add-row button { padding: 11px 16px; background: var(--primary); color: #fff; border: none; cursor: pointer; border-radius: 10px; font-weight: 600; }
+
+/* ===== 底部導航 ===== */
+.tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0; display: flex; z-index: 20;
+  background: var(--card); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tabbar button {
+  flex: 1; padding: 10px 0; background: none; border: none; cursor: pointer;
+  font-size: 11px; color: var(--muted); display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-height: 56px; justify-content: center; transition: color .2s;
+}
+.tabbar button svg { width: 22px; height: 22px; stroke-width: 1.8; }
+.tabbar button.active { color: var(--primary); font-weight: 600; }
